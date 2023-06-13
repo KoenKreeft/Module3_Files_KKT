@@ -1,0 +1,47 @@
+__winc_id__ = "ae539110d03e49ea8738fd413ac44ba8"
+__human_name__ = "files"
+
+import os
+
+def clean_cache():
+    if os.path.exists("files\cache") and os.path.isdir("files\cache"):
+        for filename in os.listdir("files\cache"):
+            filepath = os.path.join("files\cache",filename)
+            try:
+                if os.path.isfile(filepath) or os.path.islink(filepath):
+                    os.unlink(filepath)
+                elif os.path.isdir(filepath):
+                    os.rmdir(filepath)
+            except Exception as e:
+                print("Failed to delete",(filepath, e))
+    os.makedirs("files\cache", exist_ok=True)
+
+import shutil
+import zipfile
+
+def cache_zip(zip_path: str, cache_dir: str):
+    if os.path.exists(cache_dir):
+        shutil.rmtree(cache_dir)
+    os.makedirs(cache_dir)
+    with zipfile.ZipFile(zip_path,'r') as zip_ref:
+        zip_ref.extractall(cache_dir)
+
+def cached_files():
+    file_list = []
+    cache_dir = os.path.join(os.getcwd(),"files\cache")
+    for file in os.listdir(cache_dir):
+        if os.path.isfile(os.path.join(cache_dir, file)):
+            file_list.append(os.path.abspath(os.path.join(cache_dir, file)))
+    return file_list
+
+def find_password(cached_files):
+    password_indicator = "password"
+    for file_path in cached_files: 
+        with open(file_path) as f:
+            for line in f:
+                if password_indicator in line: 
+                    password = line.split()[1]
+                    return password
+    return None
+
+print (find_password(cached_files()))
